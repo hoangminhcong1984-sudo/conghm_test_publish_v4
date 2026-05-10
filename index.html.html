@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<!--
+================================================================================
+  AI VIBE 2026 — LANDING PAGE
+  Khóa đào tạo nội bộ Tổng Công ty Mạng lưới Viettel (VTNet)
+
+  CẤU TRÚC FILE:
+  [01] NAV           — sticky, blur on scroll
+  [02] HERO          — full-height, gradient + particle canvas
+  [03] TRUST BAR     — counting animation + logo strip
+  [04] LỢI ÍCH       — 5 thẻ lưới + so sánh Trước/Sau
+  [05] ĐỐI TƯỢNG     — 2 cột Target Audience
+  [06] NỘI DUNG      — 2 tab + 4 bước timeline
+  [07] SẢN PHẨM      — 2 thẻ lớn + điểm số
+  [08] THÔNG TIN     — bảng info + box quyền lợi
+  [09] FAQ           — 6 accordion
+  [10] CTA CUỐI      — countdown + CTA siêu to
+  [11] FOOTER        — navy đậm
+
+  ANIMATION LOGIC:
+  - Particle canvas: Hero background (requestAnimationFrame)
+  - Counting animation: IntersectionObserver #trust-bar
+  - Scroll-trigger: IntersectionObserver .fade-up cards (stagger 100ms)
+  - Countdown timer: setInterval → 06/05/2026 23:59:59
+  - FOMO toast: setInterval 15-20s random
+  - Sticky CTA bar: scroll event
+  - Exit intent popup: mouseleave trên document
+  - FAQ accordion: click toggle
+  - Tab switching: click handler
+  - Smooth scroll: anchor click + behavior: smooth
+
+  ĐỂ CHỈNH SỬA:
+  - Link form đăng ký: tìm "REPLACE_FORM_URL" → thay bằng Google Form thật
+  - Ảnh thật: tìm "placeholder" → thay bằng URL ảnh thật
+  - Zalo link: tìm "REPLACE_ZALO" → thay số Zalo
+  - Email: tìm "REPLACE_EMAIL"
+================================================================================
+-->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI VIBE 2026 — Thiết kế Slide bằng AI | Viettel Networks</title>
+  <meta name="description" content="Khóa đào tạo nội bộ AI VIBE 2026 — Hướng dẫn thiết kế Slide cơ bản & nâng cao bằng AI dành cho CBCNV VTNet. Miễn phí 100%. Đăng ký trước 06/05/2026." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            viettel: '#EE0033',
+            navy: '#1A1F3A',
+            navydark: '#0F172A',
+            cyan: '#00D4FF',
+            purple: '#7C3AED',
+            gray1: '#F8F9FB',
+            gray2: '#64748B',
+          },
+          fontFamily: {
+            heading: ['"Be Vietnam Pro"', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --red: #EE0033;
+      --navy: #1A1F3A;
+      --navydark: #0F172A;
+      --cyan: #00D4FF;
+      --purple: #7C3AED;
+      --white: #FFFFFF;
+      --gray-light: #F8F9FB;
+      --gray-text: #64748B;
+      --text-main: #0F172A;
+      --grad-ai: linear-gradient(135deg, var(--cyan), var(--purple));
+      --grad-hero: linear-gradient(135deg, #0a0e24 0%, #1A1F3A 60%, #0d1235 100%);
+      --grad-cta: linear-gradient(135deg, var(--navy) 0%, #3d0012 100%);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-main);
+      background: #fff;
+      overflow-x: hidden;
+    }
+    h1,h2,h3,h4,h5 { font-family: 'Be Vietnam Pro', sans-serif; }
+
+    /* ===== GRADIENT TEXT ===== */
+    .grad-red-cyan {
+      background: linear-gradient(90deg, var(--red), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .grad-ai {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .grad-white-cyan {
+      background: linear-gradient(90deg, #fff, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ===== NAV ===== */
+    #main-nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      transition: background 0.3s, backdrop-filter 0.3s, box-shadow 0.3s;
+    }
+    #main-nav.scrolled {
+      background: rgba(10,14,36,0.85);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 2px 24px rgba(0,0,0,0.3);
+    }
+    .nav-link {
+      color: rgba(255,255,255,0.75);
+      transition: color 0.2s;
+      font-size:0.9rem;
+      font-weight:500;
+    }
+    .nav-link:hover { color:#fff; }
+
+    /* ===== HERO ===== */
+    #hero {
+      min-height: 100vh;
+      background: var(--grad-hero);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    #particle-canvas {
+      position: absolute; inset:0; pointer-events:none; z-index:0;
+    }
+    .hero-content { position: relative; z-index:2; }
+
+    /* Pill eyebrow */
+    .eyebrow-pill {
+      display: inline-flex; align-items:center; gap:8px;
+      border: 1.5px solid var(--cyan);
+      border-radius: 9999px;
+      padding: 6px 18px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(0,212,255,0.06);
+    }
+
+    .glow-btn {
+      box-shadow: 0 0 20px rgba(238,0,51,0.5), 0 4px 20px rgba(238,0,51,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .glow-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 32px rgba(238,0,51,0.7), 0 6px 28px rgba(238,0,51,0.4);
+    }
+    .glow-btn:active { transform: scale(0.98); }
+
+    .outline-btn {
+      border: 1.5px solid rgba(255,255,255,0.6);
+      color:#fff;
+      transition: background 0.2s, transform 0.2s, border-color 0.2s;
+      background: transparent;
+    }
+    .outline-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color:#fff;
+      transform: scale(1.02);
+    }
+    .outline-btn:active { transform: scale(0.98); }
+
+    .bounce-arrow {
+      animation: bounceY 1.6s ease-in-out infinite;
+    }
+    @keyframes bounceY {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(10px); }
+    }
+
+    /* Mockup glow */
+    .mockup-wrap {
+      position: relative;
+    }
+    .mockup-wrap::before {
+      content:'';
+      position:absolute; inset:-30px;
+      background: radial-gradient(ellipse at center, rgba(0,212,255,0.18), transparent 70%);
+      pointer-events:none;
+    }
+    .mockup-screen {
+      border-radius:12px;
+      overflow:hidden;
+      border: 1.5px solid rgba(0,212,255,0.3);
+      box-shadow: 0 0 40px rgba(0,212,255,0.15), 0 24px 64px rgba(0,0,0,0.5);
+    }
+
+    /* ===== TRUST BAR ===== */
+    #trust-bar {
+      background: var(--navydark);
+      padding: 60px 0;
+    }
+
+    /* ===== SECTION COMMON ===== */
+    .section-pad { padding: 100px 0; }
+    .section-pad-sm { padding: 80px 0; }
+
+    .section-tag {
+      display: inline-block;
+      background: rgba(238,0,51,0.1);
+      color: var(--red);
+      font-size:0.75rem;
+      font-weight:700;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      padding:5px 14px;
+      border-radius:9999px;
+      border: 1px solid rgba(238,0,51,0.25);
+      margin-bottom:16px;
+    }
+
+    /* ===== CARDS ===== */
+    .benefit-card {
+      background:#fff;
+      border-radius:16px;
+      padding:28px;
+      border: 1px solid #e8ecf0;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: transform 0.25s, box-shadow 0.25s;
+      cursor: default;
+    }
+    .benefit-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.12);
+    }
+    .icon-circle {
+      width:52px; height:52px;
+      border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:24px;
+      margin-bottom:16px;
+      flex-shrink:0;
+    }
+
+    /* ===== BEFORE/AFTER ===== */
+    .compare-box {
+      border-radius:16px;
+      padding:24px 28px;
+    }
+
+    /* ===== TABS ===== */
+    .tab-btn {
+      padding: 12px 28px;
+      border-radius:9999px;
+      font-weight:700;
+      font-size:0.95rem;
+      transition: all 0.25s;
+      cursor:pointer;
+      border: 2px solid transparent;
+    }
+    .tab-btn.active {
+      background: var(--red);
+      color:#fff;
+      box-shadow: 0 0 18px rgba(238,0,51,0.4);
+    }
+    .tab-btn:not(.active) {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.6);
+      border-color: rgba(255,255,255,0.15);
+    }
+    .tab-btn:not(.active):hover {
+      background: rgba(255,255,255,0.15);
+      color:#fff;
+    }
+
+    .step-num {
+      width:56px; height:56px;
+      border-radius:9999px;
+      background: linear-gradient(135deg, var(--red), var(--cyan));
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Be Vietnam Pro',sans-serif;
+      font-size:1.4rem;
+      font-weight:900;
+      color:#fff;
+      box-shadow: 0 0 20px rgba(238,0,51,0.4);
+      flex-shrink:0;
+    }
+
+    /* ===== PRODUCT CARDS ===== */
+    .product-card {
+      border-radius:20px;
+      padding:36px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+      border: 1.5px solid rgba(0,212,255,0.2);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 40px rgba(0,212,255,0.12);
+    }
+
+    /* ===== INFO TABLE ===== */
+    .info-row {
+      display:flex; align-items:flex-start; gap:16px;
+      padding:16px 0;
+      border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+    .info-row:last-child { border-bottom:none; }
+
+    /* ===== FAQ ===== */
+    .faq-item {
+      border-radius:14px;
+      overflow:hidden;
+      background:#fff;
+      border:1px solid #e8ecf0;
+      margin-bottom:12px;
+      transition: box-shadow 0.2s;
+    }
+    .faq-item.open { box-shadow: 0 6px 24px rgba(238,0,51,0.1); border-color:rgba(238,0,51,0.25); }
+    .faq-q {
+      width:100%;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px;
+      font-weight:700;
+      font-size:1rem;
+      cursor:pointer;
+      text-align:left;
+      background:none; border:none;
+      font-family:'Be Vietnam Pro',sans-serif;
+      color: var(--navydark);
+      transition: color 0.2s;
+    }
+    .faq-item.open .faq-q { color: var(--red); }
+    .faq-a {
+      max-height:0; overflow:hidden;
+      transition: max-height 0.4s ease, padding 0.3s;
+      padding:0 24px;
+      color: var(--gray-text);
+      font-size:0.95rem;
+      line-height:1.7;
+    }
+    .faq-item.open .faq-a {
+      max-height:300px;
+      padding-bottom:20px;
+    }
+    .faq-icon { transition: transform 0.3s; flex-shrink:0; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); }
+
+    /* ===== COUNTDOWN ===== */
+    .cd-box {
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius:16px;
+      padding: 20px 28px;
+      min-width:90px;
+      text-align:center;
+    }
+    .cd-num {
+      font-family:'Be Vietnam Pro',sans-serif;
+      font-size:2.8rem;
+      font-weight:900;
+      background: linear-gradient(135deg, var(--red), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height:1;
+    }
+    .cd-label { font-size:0.72rem; color:rgba(255,255,255,0.5); letter-spacing:0.05em; text-transform:uppercase; margin-top:6px; }
+
+    /* ===== PULSE CTA ===== */
+    .pulse-cta {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%,100% { box-shadow: 0 0 24px rgba(238,0,51,0.5), 0 6px 30px rgba(238,0,51,0.3); }
+      50% { box-shadow: 0 0 48px rgba(238,0,51,0.8), 0 10px 50px rgba(238,0,51,0.5); }
+    }
+
+    /* ===== STICKY CTA BAR ===== */
+    #sticky-bar {
+      position:fixed; bottom:0; left:0; right:0; z-index:90;
+      background: var(--red);
+      padding:12px 24px;
+      display:flex; align-items:center; justify-content:center; gap:16px;
+      transform: translateY(100%);
+      transition: transform 0.35s ease;
+      box-shadow: 0 -4px 20px rgba(238,0,51,0.4);
+    }
+    #sticky-bar.visible { transform: translateY(0); }
+
+    /* ===== TOAST ===== */
+    #fomo-toast {
+      position:fixed; bottom:80px; left:20px; z-index:200;
+      background:#fff;
+      border-radius:14px;
+      padding:14px 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      display:flex; align-items:center; gap:12px;
+      font-size:0.85rem;
+      max-width:280px;
+      transform: translateX(-120%);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      border-left: 4px solid var(--red);
+    }
+    #fomo-toast.show { transform: translateX(0); }
+
+    /* ===== EXIT POPUP ===== */
+    #exit-popup {
+      position:fixed; inset:0; z-index:300;
+      background: rgba(0,0,0,0.6);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition: opacity 0.3s;
+      backdrop-filter: blur(4px);
+    }
+    #exit-popup.show { opacity:1; pointer-events:auto; }
+    .popup-box {
+      background:#fff;
+      border-radius:24px;
+      padding:40px;
+      max-width:480px;
+      width:90%;
+      text-align:center;
+      position:relative;
+      animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity:0; }
+      to { transform: scale(1); opacity:1; }
+    }
+
+    /* ===== FLOATING ZALO ===== */
+    #zalo-btn {
+      position:fixed; right:20px; bottom:80px; z-index:150;
+      width:52px; height:52px;
+      border-radius:9999px;
+      background: #0068FF;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 4px 20px rgba(0,104,255,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration:none;
+      color:#fff;
+      font-weight:900;
+      font-size:0.75rem;
+      letter-spacing:0;
+    }
+    #zalo-btn:hover { transform:scale(1.1); box-shadow:0 6px 28px rgba(0,104,255,0.5); }
+
+    /* ===== LOGO STRIP ===== */
+    .logo-pill {
+      background: rgba(255,255,255,0.07);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:9999px;
+      padding:10px 22px;
+      font-size:0.85rem;
+      font-weight:700;
+      color:rgba(255,255,255,0.45);
+      letter-spacing:0.03em;
+      transition: all 0.2s;
+      white-space:nowrap;
+    }
+    .logo-pill:hover {
+      color:#fff;
+      background: rgba(255,255,255,0.14);
+      border-color:rgba(255,255,255,0.3);
+    }
+
+    /* ===== SCROLL ANIMATIONS ===== */
+    .fade-up {
+      opacity:0;
+      transform: translateY(30px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .fade-up.visible {
+      opacity:1;
+      transform: translateY(0);
+    }
+
+    /* ===== PROGRESS DOT NAV ===== */
+    .check-icon { color: #22c55e; }
+
+    /* ===== AUDIENCE ===== */
+    .audience-col {
+      background: rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:20px;
+      padding:32px;
+    }
+
+    /* ===== STEP CARD ===== */
+    .step-card {
+      background: rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:16px;
+      padding:28px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .step-card:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(0,212,255,0.3);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width:768px) {
+      .cd-num { font-size:2rem; }
+      .cd-box { min-width:68px; padding:14px 12px; }
+      #hero h1 { font-size:2.2rem !important; }
+    }
+    @media (max-width:480px) {
+      #hero h1 { font-size:1.8rem !important; }
+    }
+
+    /* Nav mobile */
+    #mobile-menu {
+      display:none;
+      flex-direction:column;
+      gap:4px;
+      background: rgba(10,14,36,0.97);
+      backdrop-filter:blur(16px);
+      padding:16px 24px;
+      border-top:1px solid rgba(255,255,255,0.1);
+    }
+    #mobile-menu.open { display:flex; }
+    #mobile-menu a {
+      color:rgba(255,255,255,0.8);
+      padding:10px 0;
+      font-weight:600;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      text-decoration:none;
+      font-size:0.95rem;
+    }
+    #mobile-menu a:hover { color:#fff; }
+
+    /* glow on trust numbers */
+    .trust-num {
+      font-family:'Be Vietnam Pro',sans-serif;
+      font-size:3rem;
+      font-weight:900;
+      background: linear-gradient(135deg, var(--red), var(--cyan));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      line-height:1;
+    }
+
+    /* Section bg patterns */
+    .bg-dark-section {
+      background: var(--navy);
+    }
+    .bg-darkest-section {
+      background: var(--navydark);
+    }
+    .bg-ai-gradient {
+      background: linear-gradient(135deg, rgba(0,212,255,0.04), rgba(124,58,237,0.06));
+    }
+  </style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+<!-- [01] NAV -->
+<!-- ================================================================ -->
+<nav id="main-nav" aria-label="Điều hướng chính">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="flex items-center justify-between py-4 gap-4">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-3 flex-shrink-0" aria-label="Trang chủ Viettel Networks AI VIBE 2026">
+        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-viettel flex-shrink-0" aria-hidden="true">
+          <span style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;color:#fff;font-size:1rem;">V</span>
+        </div>
+        <div class="hidden sm:block">
+          <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:0.78rem;letter-spacing:0.04em;line-height:1.2;">VIETTEL NETWORKS</div>
+          <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:700;color:var(--cyan);font-size:0.72rem;letter-spacing:0.06em;">AI VIBE 2026</div>
+        </div>
+      </a>
+
+      <!-- Desktop menu -->
+      <div class="hidden lg:flex items-center gap-6">
+        <a href="#loi-ich" class="nav-link">Mục tiêu</a>
+        <a href="#doi-tuong" class="nav-link">Đối tượng</a>
+        <a href="#noi-dung" class="nav-link">Nội dung</a>
+        <a href="#quyen-loi" class="nav-link">Quyền lợi</a>
+        <a href="#dang-ky" class="nav-link">Đăng ký</a>
+      </div>
+
+      <!-- Right -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <a href="tel:0989208017" class="hidden md:flex items-center gap-2 text-white/70 hover:text-white text-sm font-medium transition-colors" aria-label="Gọi điện 0989 208 017">
+          <i data-lucide="phone" class="w-4 h-4 text-cyan" aria-hidden="true"></i>
+          <span>0989 208 017</span>
+        </a>
+        <a href="REPLACE_FORM_URL" target="_blank" rel="noopener"
+           class="glow-btn bg-viettel text-white font-bold rounded-full px-5 py-2.5 text-sm"
+           aria-label="Đăng ký ngay khóa AI VIBE 2026">
+          Đăng ký ngay
+        </a>
+        <!-- Mobile hamburger -->
+        <button id="hamburger" class="lg:hidden text-white p-1" aria-label="Mở menu" aria-expanded="false" aria-controls="mobile-menu">
+          <i data-lucide="menu" class="w-6 h-6" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" role="navigation" aria-label="Menu di động">
+      <a href="#loi-ich">Mục tiêu</a>
+      <a href="#doi-tuong">Đối tượng</a>
+      <a href="#noi-dung">Nội dung</a>
+      <a href="#quyen-loi">Quyền lợi</a>
+      <a href="#dang-ky">Đăng ký ngay</a>
+      <a href="tel:0989208017">📞 0989 208 017</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ================================================================ -->
+<!-- [02] HERO -->
+<!-- ================================================================ -->
+<section id="hero" aria-labelledby="hero-heading">
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 w-full hero-content pt-24">
+    <div class="grid lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
+      <!-- Left -->
+      <div>
+        <div class="eyebrow-pill mb-6" role="text">
+          🚀 CHƯƠNG TRÌNH ĐÀO TẠO NỘI BỘ — VIETTEL NETWORKS
+        </div>
+
+        <h1 id="hero-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,4rem);line-height:1.1;text-transform:uppercase;margin-bottom:24px;">
+          <span class="grad-red-cyan">HƯỚNG DẪN THIẾT KẾ SLIDE</span><br>
+          <span style="color:#fff;">CƠ BẢN &amp; NÂNG CAO</span>
+        </h1>
+
+        <p style="color:rgba(255,255,255,0.75);font-size:1.1rem;line-height:1.7;margin-bottom:36px;max-width:560px;">
+          Từ ý tưởng đến Slide đỉnh cao &amp; Landing Page chuyên nghiệp —
+          <strong style="color:#fff;">Bạn không cần biết code.</strong> Bạn chỉ cần biết mình muốn gì — AI sẽ làm phần còn lại.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-wrap gap-4 mb-10">
+          <a href="REPLACE_FORM_URL" target="_blank" rel="noopener"
+             class="glow-btn bg-viettel text-white font-bold rounded-full px-7 py-3.5 text-base inline-flex items-center gap-2"
+             aria-label="Đăng ký tham gia khóa AI VIBE 2026, hạn 06/05/2026">
+            <i data-lucide="rocket" class="w-5 h-5" aria-hidden="true"></i>
+            Đăng ký ngay — Hạn 06/05/2026
+          </a>
+          <a href="#noi-dung"
+             class="outline-btn font-bold rounded-full px-7 py-3.5 text-base inline-flex items-center gap-2"
+             aria-label="Xem nội dung chi tiết khóa học">
+            <i data-lucide="clipboard-list" class="w-5 h-5" aria-hidden="true"></i>
+            Xem nội dung chi tiết
+          </a>
+        </div>
+
+        <!-- Social proof pills -->
+        <div class="flex flex-wrap gap-3" role="list" aria-label="Thông tin khóa học">
+          <div class="eyebrow-pill" role="listitem">⚡ 3,5 giờ học nhanh</div>
+          <div class="eyebrow-pill" role="listitem">🎨 2 sản phẩm thật</div>
+          <div class="eyebrow-pill" role="listitem">🏆 Chứng nhận đáp ứng KNL</div>
+        </div>
+      </div>
+
+      <!-- Right: Mockup -->
+      <div class="mockup-wrap hidden lg:block">
+        <div class="mockup-screen">
+          <!-- Fake browser bar -->
+          <div style="background:#1e2035;padding:10px 16px;display:flex;align-items:center;gap:8px;">
+            <span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block;"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block;"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block;"></span>
+            <div style="flex:1;background:#2d3154;border-radius:6px;padding:4px 12px;font-size:0.7rem;color:rgba(255,255,255,0.4);margin-left:8px;">claude.ai</div>
+          </div>
+          <!-- Fake Claude UI -->
+          <div style="background:#0d1117;padding:24px;min-height:320px;">
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:16px;font-family:'Inter',sans-serif;">Claude — AI VIBE 2026</div>
+            <div style="background:#1a1f3a;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid rgba(0,212,255,0.2);">
+              <div style="font-size:0.8rem;color:var(--cyan);font-weight:600;margin-bottom:8px;">👤 Bạn:</div>
+              <p style="font-size:0.82rem;color:rgba(255,255,255,0.8);line-height:1.6;">"Tạo cho tôi slide giới thiệu phòng Nhân sự VTNet, 6 trang, phong cách hiện đại, màu đỏ Viettel."</p>
+            </div>
+            <div style="background:#131722;border-radius:12px;padding:16px;border:1px solid rgba(124,58,237,0.2);">
+              <div style="font-size:0.8rem;color:var(--purple);font-weight:600;margin-bottom:8px;">🤖 Claude:</div>
+              <p style="font-size:0.82rem;color:rgba(255,255,255,0.8);line-height:1.6;">Đây là cấu trúc slide của bạn...</p>
+              <div class="mt-3 space-y-2">
+                <div style="background:rgba(238,0,51,0.15);border-radius:8px;padding:10px;font-size:0.75rem;color:rgba(255,255,255,0.7);">📄 Slide 1: Trang bìa — Logo + tagline</div>
+                <div style="background:rgba(0,212,255,0.08);border-radius:8px;padding:10px;font-size:0.75rem;color:rgba(255,255,255,0.7);">📄 Slide 2: Tổng quan phòng CBCNV...</div>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulseGlow 1.2s infinite;"></div>
+                  <span style="font-size:0.72rem;color:var(--cyan);">Đang sinh nội dung...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bounce arrow -->
+    <div class="text-center pb-10" aria-hidden="true">
+      <a href="#trust-bar" class="inline-block bounce-arrow text-white/40 hover:text-white/70 transition-colors">
+        <i data-lucide="chevrons-down" class="w-8 h-8"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [03] TRUST BAR -->
+<!-- ================================================================ -->
+<section id="trust-bar" aria-labelledby="trust-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <!-- Counting numbers -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-14" id="counters" role="list" aria-label="Thống kê khóa học">
+      <div class="text-center" role="listitem">
+        <div class="trust-num" data-target="3.5" data-suffix="h" data-decimal="1" aria-label="3,5 giờ">0</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:6px;">Thời lượng</div>
+      </div>
+      <div class="text-center" role="listitem">
+        <div class="trust-num" data-target="2" data-suffix=" sản phẩm" aria-label="2 sản phẩm">0</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:6px;">Đầu ra thực tế</div>
+      </div>
+      <div class="text-center" role="listitem">
+        <div class="trust-num" data-target="7" data-suffix="/10" aria-label="đạt 7/10">0</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:6px;">Điểm đạt chứng nhận</div>
+      </div>
+      <div class="text-center" role="listitem">
+        <div class="trust-num" data-target="100" data-suffix="%" aria-label="100% chứng nhận">0</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:6px;">Chứng nhận nội bộ</div>
+      </div>
+    </div>
+
+    <!-- Logo strip -->
+    <div class="text-center mb-6">
+      <p style="color:rgba(255,255,255,0.35);font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;">
+        CÔNG CỤ AI SẼ ĐƯỢC SỬ DỤNG
+      </p>
+    </div>
+    <div class="flex flex-wrap justify-center gap-3 mb-10" role="list" aria-label="Danh sách công cụ AI">
+      <span class="logo-pill" role="listitem">Claude</span>
+      <span class="logo-pill" role="listitem">Gemini</span>
+      <span class="logo-pill" role="listitem">NotebookLM</span>
+      <span class="logo-pill" role="listitem">Canva AI</span>
+      <span class="logo-pill" role="listitem">GitHub Pages</span>
+    </div>
+
+    <!-- Badge -->
+    <div class="flex justify-center">
+      <div style="background:linear-gradient(135deg,rgba(238,0,51,0.15),rgba(0,212,255,0.1));border:1.5px solid rgba(238,0,51,0.3);border-radius:9999px;padding:10px 28px;display:inline-flex;align-items:center;gap:10px;">
+        <i data-lucide="shield-check" class="w-5 h-5 text-cyan" aria-hidden="true"></i>
+        <span style="color:#fff;font-weight:700;font-size:0.9rem;font-family:'Be Vietnam Pro',sans-serif;">Đáp ứng KNL kỹ năng AI — VTNet 2026</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [04] LỢI ÍCH CỐT LÕI -->
+<!-- ================================================================ -->
+<section id="loi-ich" class="section-pad" aria-labelledby="loi-ich-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-16 fade-up">
+      <div class="section-tag">01 — MỤC TIÊU CHƯƠNG TRÌNH</div>
+      <h2 id="loi-ich-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(1.8rem,4vw,2.8rem);color:var(--navydark);margin-bottom:12px;">
+        Học để làm được việc thật,<br><span class="grad-red-cyan">không phải học cho biết</span>
+      </h2>
+      <p style="color:var(--gray-text);font-size:1rem;max-width:520px;margin:0 auto;line-height:1.7;">
+        Sau 3,5 giờ, bạn mang về sản phẩm hoàn chỉnh có thể dùng ngay tuần tới.
+      </p>
+    </div>
+
+    <!-- 5 cards: 3-2 layout desktop -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="benefit-card fade-up" style="transition-delay:0ms">
+        <div class="icon-circle" style="background:rgba(238,0,51,0.1);">⚡</div>
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:10px;color:var(--navydark);">Slide trong dưới 30 phút</h3>
+        <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;">Dùng Claude/Gemini/Canva sinh slide chuẩn brand Viettel — thay vì 3–5 tiếng làm thủ công như trước.</p>
+      </div>
+      <div class="benefit-card fade-up" style="transition-delay:100ms">
+        <div class="icon-circle" style="background:rgba(124,58,237,0.1);">🔧</div>
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:10px;color:var(--navydark);">Làm chủ Skill Claude</h3>
+        <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;">Đóng gói quy trình lặp đi lặp lại thành công cụ dùng lại được — tiết kiệm giờ mỗi tuần.</p>
+      </div>
+      <div class="benefit-card fade-up" style="transition-delay:200ms">
+        <div class="icon-circle" style="background:rgba(0,212,255,0.1);">🌐</div>
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:10px;color:var(--navydark);">Tự build Landing Page</h3>
+        <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;">Không cần HTML/CSS — AI sinh code, public lên GitHub Pages miễn phí, ai cũng truy cập được.</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      <div class="benefit-card fade-up" style="transition-delay:300ms">
+        <div class="icon-circle" style="background:rgba(34,197,94,0.1);">🧠</div>
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:10px;color:var(--navydark);">Tư duy Vibe Coding</h3>
+        <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;">Mô tả ý tưởng → AI sinh sản phẩm → tinh chỉnh → xuất bản. Không code một dòng, vẫn ra sản phẩm thật.</p>
+      </div>
+      <div class="benefit-card fade-up" style="transition-delay:400ms">
+        <div class="icon-circle" style="background:rgba(251,191,36,0.1);">🏅</div>
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:10px;color:var(--navydark);">Chứng nhận đạt chuẩn</h3>
+        <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;">Đáp ứng KNL kỹ năng AI cho VTNet 2026 — ghi nhận chính thức trong hồ sơ năng lực nhân viên.</p>
+      </div>
+    </div>
+
+    <!-- Before/After compare -->
+    <div class="grid md:grid-cols-2 gap-6 fade-up" aria-label="So sánh trước và sau khi học">
+      <div class="compare-box" style="background:rgba(239,68,68,0.06);border:1.5px solid rgba(239,68,68,0.2);">
+        <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#ef4444;margin-bottom:16px;font-size:1rem;">❌ Trước khi học</div>
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="clock" class="w-5 h-5 text-red-400 flex-shrink-0" aria-hidden="true"></i>
+          <span style="color:#64748b;font-size:0.95rem;">3–5 tiếng làm slide thủ công mỗi lần</span>
+        </div>
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="frown" class="w-5 h-5 text-red-400 flex-shrink-0" aria-hidden="true"></i>
+          <span style="color:#64748b;font-size:0.95rem;">Không biết dùng AI ngoài chat cơ bản</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <i data-lucide="x-circle" class="w-5 h-5 text-red-400 flex-shrink-0" aria-hidden="true"></i>
+          <span style="color:#64748b;font-size:0.95rem;">Công việc lặp đi lặp lại, mệt mỏi</span>
+        </div>
+      </div>
+      <div class="compare-box" style="background:rgba(34,197,94,0.06);border:1.5px solid rgba(34,197,94,0.2);">
+        <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#22c55e;margin-bottom:16px;font-size:1rem;">✅ Sau 3,5 giờ với AI</div>
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="zap" class="w-5 h-5 text-green-500 flex-shrink-0" aria-hidden="true"></i>
+          <span style="color:#64748b;font-size:0.95rem;"><strong>30 phút</strong> ra Slide hoàn chỉnh, chuẩn brand</span>
+        </div>
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="smile" class="w-5 h-5 text-green-500 flex-shrink-0" aria-hidden="true"></i>
+          <span style="color:#64748b;font-size:0.95rem;">Có Skill Claude riêng, dùng lại mãi</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" aria-hidden="true"></i>
+          <span style="color:#64748b;font-size:0.95rem;">Landing Page cá nhân, chứng nhận KNL</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [05] ĐỐI TƯỢNG -->
+<!-- ================================================================ -->
+<section id="doi-tuong" class="section-pad bg-dark-section" aria-labelledby="doi-tuong-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14 fade-up">
+      <div class="section-tag" style="background:rgba(0,212,255,0.1);color:var(--cyan);border-color:rgba(0,212,255,0.25);">02 — DÀNH CHO AI</div>
+      <h2 id="doi-tuong-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(1.8rem,4vw,2.6rem);color:#fff;margin-bottom:12px;">
+        AI VIBE 2026 dành cho bạn
+      </h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:1rem;max-width:500px;margin:0 auto;">
+        Tinh thần <em>"thử nó xem sao"</em> — không cần kinh nghiệm code hay design trước đó.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Left: Nên tham gia -->
+      <div class="audience-col fade-up">
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#22c55e;font-size:1.1rem;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+          <i data-lucide="check-circle-2" class="w-5 h-5" aria-hidden="true"></i>
+          Bạn nên tham gia nếu...
+        </h3>
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <i data-lucide="check" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;line-height:1.6;">Bạn là CBCNV VTNet thường xuyên làm slide để họp, báo cáo, trình bày — và muốn làm nhanh hơn</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="check" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;line-height:1.6;">Bạn đã nghe về ChatGPT/Claude nhưng chưa biết áp dụng vào công việc thực tế hàng ngày</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="check" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;line-height:1.6;">Bạn muốn có sản phẩm AI thực chiến — không phải nghe lý thuyết, mà ra về là dùng được ngay</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="check" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;line-height:1.6;">Bạn muốn đạt chứng nhận KNL kỹ năng AI — ghi điểm chính thức trong hệ thống năng lực VTNet 2026</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Yêu cầu đầu vào -->
+      <div class="audience-col fade-up" style="transition-delay:150ms">
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:var(--cyan);font-size:1.1rem;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+          <i data-lucide="clipboard-list" class="w-5 h-5" aria-hidden="true"></i>
+          Yêu cầu đầu vào
+        </h3>
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <i data-lucide="laptop" class="w-5 h-5 text-cyan mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <p style="color:#fff;font-weight:600;font-size:0.95rem;">Mang laptop</p>
+              <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;">Windows hoặc Mac, kết nối internet tốt</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="user-circle" class="w-5 h-5 text-cyan mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <p style="color:#fff;font-weight:600;font-size:0.95rem;">Tài khoản Gmail</p>
+              <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;">Để truy cập Claude, Gemini, GitHub (bản miễn phí là đủ)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="sparkles" class="w-5 h-5 text-cyan mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <p style="color:#fff;font-weight:600;font-size:0.95rem;">Tinh thần "thử nó xem sao"</p>
+              <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;">Không cần code, không cần design — chỉ cần sẵn sàng thực hành</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:28px;padding:16px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:12px;">
+          <p style="color:var(--cyan);font-weight:700;font-size:0.9rem;margin-bottom:4px;">💡 Không cần kinh nghiệm</p>
+          <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;line-height:1.6;">Kể cả nếu đây là lần đầu bạn dùng AI — chúng tôi sẽ hướng dẫn từng bước, ngay tại lớp.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [06] NỘI DUNG — 4 BƯỚC -->
+<!-- ================================================================ -->
+<section id="noi-dung" class="section-pad bg-darkest-section" aria-labelledby="noi-dung-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 fade-up">
+      <div class="section-tag" style="background:rgba(124,58,237,0.12);color:#a78bfa;border-color:rgba(124,58,237,0.3);">03 — BẠN SẼ HỌC GÌ</div>
+      <h2 id="noi-dung-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(1.8rem,4vw,2.6rem);color:#fff;margin-bottom:12px;">
+        Cách thức hoạt động
+      </h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:1rem;">4 bước — mỗi bước ra một sản phẩm cụ thể</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex justify-center gap-4 mb-12 flex-wrap" role="tablist" aria-label="Phần học">
+      <button class="tab-btn active" id="tab1" onclick="switchTab(1)" role="tab" aria-selected="true" aria-controls="tab-panel">
+        PHẦN 1 — CƠ BẢN
+      </button>
+      <button class="tab-btn" id="tab2" onclick="switchTab(2)" role="tab" aria-selected="false" aria-controls="tab-panel">
+        PHẦN 2 — NÂNG CAO
+      </button>
+    </div>
+
+    <!-- Tab content -->
+    <div id="tab-panel" role="tabpanel">
+      <!-- Part 1 -->
+      <div id="tab-content-1">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="step-card fade-up" style="transition-delay:0ms">
+            <div class="flex items-start gap-4">
+              <div class="step-num" aria-hidden="true">1</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span style="font-size:1.2rem;" aria-hidden="true">📄</span>
+                  <span style="color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:600;letter-spacing:0.05em;">~45 phút</span>
+                </div>
+                <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:1.05rem;margin-bottom:8px;">Xây tài liệu nguồn chuẩn</h3>
+                <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;line-height:1.6;">Học cách cấu trúc nội dung đầu vào để AI hiểu đúng ý. Tài liệu nguồn tốt = slide tốt — đây là bước quyết định chất lượng đầu ra.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-card fade-up" style="transition-delay:100ms">
+            <div class="flex items-start gap-4">
+              <div class="step-num" aria-hidden="true">2</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span style="font-size:1.2rem;" aria-hidden="true">🤖</span>
+                  <span style="color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:600;letter-spacing:0.05em;">~60 phút</span>
+                </div>
+                <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:1.05rem;margin-bottom:8px;">Sinh slide tự động bằng AI</h3>
+                <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;line-height:1.6;">Thực hành trực tiếp với Claude, Gemini, NotebookLM để tạo slide. So sánh kết quả, chọn đúng tool cho từng loại nội dung.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Part 2 (hidden by default) -->
+      <div id="tab-content-2" style="display:none;">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="step-card fade-up">
+            <div class="flex items-start gap-4">
+              <div class="step-num" aria-hidden="true">3</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span style="font-size:1.2rem;" aria-hidden="true">🔧</span>
+                  <span style="color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:600;letter-spacing:0.05em;">~45 phút</span>
+                </div>
+                <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:1.05rem;margin-bottom:8px;">Thiết kế Skill Claude của riêng bạn</h3>
+                <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;line-height:1.6;">Tự tạo công cụ AI cá nhân — đóng gói quy trình hay dùng thành Skill có thể chạy lại bằng một lệnh, chia sẻ được với cả nhóm.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-card fade-up" style="transition-delay:100ms">
+            <div class="flex items-start gap-4">
+              <div class="step-num" aria-hidden="true">4</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span style="font-size:1.2rem;" aria-hidden="true">🌐</span>
+                  <span style="color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:600;letter-spacing:0.05em;">~60 phút</span>
+                </div>
+                <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:1.05rem;margin-bottom:8px;">Tạo Landing Page &amp; Public lên GitHub</h3>
+                <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;line-height:1.6;">AI sinh code HTML hoàn chỉnh từ mô tả của bạn. Deploy lên GitHub Pages miễn phí — ai cũng truy cập được bằng link thật.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-14">
+      <a href="REPLACE_FORM_URL" target="_blank" rel="noopener"
+         class="glow-btn bg-viettel text-white font-bold rounded-full px-8 py-4 text-base inline-flex items-center gap-2"
+         aria-label="Đăng ký tham gia khóa học ngay">
+        <i data-lucide="rocket" class="w-5 h-5" aria-hidden="true"></i>
+        Tôi muốn đăng ký ngay
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [07] SẢN PHẨM -->
+<!-- ================================================================ -->
+<section id="san-pham" class="section-pad" aria-labelledby="san-pham-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14 fade-up">
+      <div class="section-tag">04 — BẠN SẼ MANG GÌ VỀ</div>
+      <h2 id="san-pham-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(1.8rem,4vw,2.6rem);color:var(--navydark);margin-bottom:12px;">
+        Sản phẩm bắt buộc
+      </h2>
+      <p style="color:var(--gray-text);font-size:1rem;">Ra khỏi lớp, bạn có sản phẩm thật — không phải bài tập trên giấy</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8 mb-10">
+      <div class="product-card fade-up">
+        <div style="font-size:2.5rem;margin-bottom:16px;" aria-hidden="true">🎯</div>
+        <div style="background:rgba(238,0,51,0.1);border-radius:9999px;padding:4px 14px;display:inline-block;margin-bottom:12px;">
+          <span style="color:var(--red);font-weight:700;font-size:0.78rem;letter-spacing:0.04em;">SẢN PHẨM 1</span>
+        </div>
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.2rem;color:var(--navydark);margin-bottom:10px;">Thiết kế Slide bằng AI</h3>
+        <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">Bộ slide hoàn chỉnh về chủ đề tự chọn — được sinh bằng AI, chỉnh sửa và hoàn thiện ngay trong buổi học.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(238,0,51,0.06);border-radius:12px;padding:14px 18px;">
+          <span style="color:var(--gray-text);font-size:0.9rem;">Điểm tối đa</span>
+          <span style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:1.8rem;" class="grad-red-cyan">8/10</span>
+        </div>
+      </div>
+
+      <div class="product-card fade-up" style="transition-delay:150ms">
+        <div style="font-size:2.5rem;margin-bottom:16px;" aria-hidden="true">🌟</div>
+        <div style="background:rgba(0,212,255,0.1);border-radius:9999px;padding:4px 14px;display:inline-block;margin-bottom:12px;">
+          <span style="color:var(--cyan);font-weight:700;font-size:0.78rem;letter-spacing:0.04em;">SẢN PHẨM 2 — BONUS</span>
+        </div>
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.2rem;color:var(--navydark);margin-bottom:10px;">Landing Page cá nhân</h3>
+        <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">Trang web thật, có link thật, public trên GitHub Pages — được tạo hoàn toàn bằng AI trong phần nâng cao.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,212,255,0.06);border-radius:12px;padding:14px 18px;">
+          <span style="color:var(--gray-text);font-size:0.9rem;">Điểm tối đa</span>
+          <span style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:1.8rem;" class="grad-ai">2/10</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total score -->
+    <div class="fade-up" style="background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.08));border:1.5px solid rgba(0,212,255,0.2);border-radius:20px;padding:32px;text-align:center;">
+      <i data-lucide="bar-chart-3" class="w-8 h-8 mx-auto mb-3" style="color:var(--cyan);" aria-hidden="true"></i>
+      <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:1.5rem;color:var(--navydark);margin-bottom:8px;">
+        📊 Tổng <span class="grad-ai">10/10</span> — Đạt <span style="color:var(--red);">≥ 7 điểm</span> để nhận Chứng nhận KNL
+      </div>
+      <p style="color:var(--gray-text);font-size:0.9rem;">Chứng nhận được cấp ngay sau buổi học cho học viên đủ điều kiện.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [08] THÔNG TIN CHƯƠNG TRÌNH -->
+<!-- ================================================================ -->
+<section id="quyen-loi" class="section-pad bg-dark-section" aria-labelledby="quyen-loi-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14 fade-up">
+      <div class="section-tag" style="background:rgba(34,197,94,0.1);color:#22c55e;border-color:rgba(34,197,94,0.25);">05 — THÔNG TIN CHƯƠNG TRÌNH</div>
+      <h2 id="quyen-loi-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(2rem,4vw,3rem);color:#fff;margin-bottom:12px;">
+        💯 100% MIỄN PHÍ<br><span style="color:rgba(255,255,255,0.5);font-size:0.6em;font-weight:600;">cho CBCNV VTNet</span>
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-12 items-start">
+      <!-- Info table -->
+      <div class="fade-up" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;" role="table" aria-label="Thông tin lịch học">
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:1.1rem;margin-bottom:20px;">📋 Chi tiết lịch học</h3>
+        <div role="row" class="info-row">
+          <i data-lucide="calendar" class="w-5 h-5 text-cyan flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+          <div>
+            <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;margin-bottom:2px;">Thời gian</div>
+            <div style="color:#fff;font-weight:600;font-size:0.95rem;">8h30 – 12h00, Thứ Sáu, ngày 08/05/2026</div>
+          </div>
+        </div>
+        <div role="row" class="info-row">
+          <i data-lucide="timer" class="w-5 h-5 text-cyan flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+          <div>
+            <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;margin-bottom:2px;">Thời lượng</div>
+            <div style="color:#fff;font-weight:600;font-size:0.95rem;">3,5 giờ — gọn trong một buổi sáng</div>
+          </div>
+        </div>
+        <div role="row" class="info-row">
+          <i data-lucide="monitor" class="w-5 h-5 text-cyan flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+          <div>
+            <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;margin-bottom:2px;">Hình thức</div>
+            <div style="color:#fff;font-weight:600;font-size:0.95rem;">Blended Learning — Online (Zoom) + Offline</div>
+          </div>
+        </div>
+        <div role="row" class="info-row">
+          <i data-lucide="map-pin" class="w-5 h-5 text-cyan flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+          <div>
+            <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;margin-bottom:2px;">Địa điểm</div>
+            <div style="color:#fff;font-weight:600;font-size:0.95rem;">Tầng G — Toà nhà Thái Bình / Zoom</div>
+          </div>
+        </div>
+        <div role="row" class="info-row" style="border-bottom:none;">
+          <i data-lucide="user-check" class="w-5 h-5 text-cyan flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+          <div>
+            <div style="color:rgba(255,255,255,0.45);font-size:0.75rem;margin-bottom:2px;">Hướng dẫn</div>
+            <div style="color:#fff;font-weight:600;font-size:0.95rem;">Đ/c Đỗ Thị Ngát — Phòng Nhân sự, VTNet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Benefits -->
+      <div class="space-y-5 fade-up" style="transition-delay:150ms">
+        <h3 style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:1.1rem;margin-bottom:4px;">🎁 Quyền lợi học viên</h3>
+
+        <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:16px;padding:24px;display:flex;gap:16px;align-items:flex-start;">
+          <div style="font-size:1.8rem;flex-shrink:0;" aria-hidden="true">🏅</div>
+          <div>
+            <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:700;color:#fbbf24;font-size:0.95rem;margin-bottom:4px;">Chứng nhận nội bộ</div>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;line-height:1.6;">Đáp ứng KNL kỹ năng AI của VTNet 2026 — ghi nhận chính thức trong hồ sơ nhân viên</p>
+          </div>
+        </div>
+
+        <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:16px;padding:24px;display:flex;gap:16px;align-items:flex-start;">
+          <div style="font-size:1.8rem;flex-shrink:0;" aria-hidden="true">📚</div>
+          <div>
+            <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:700;color:var(--cyan);font-size:0.95rem;margin-bottom:4px;">Tài liệu "đọc là làm được"</div>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;line-height:1.6;">Bộ prompt mẫu + hướng dẫn step-by-step có thể áp dụng ngay vào công việc thực tế</p>
+          </div>
+        </div>
+
+        <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:24px;display:flex;gap:16px;align-items:flex-start;">
+          <div style="font-size:1.8rem;flex-shrink:0;" aria-hidden="true">🎁</div>
+          <div>
+            <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:700;color:#a78bfa;font-size:0.95rem;margin-bottom:4px;">Bonus tài liệu mở rộng</div>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;line-height:1.6;">Claude for PPT / Excel / Word / Chrome — ứng dụng AI vào toàn bộ bộ công cụ Microsoft 365</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [09] FAQ -->
+<!-- ================================================================ -->
+<section id="faq" class="section-pad" aria-labelledby="faq-heading">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14 fade-up">
+      <div class="section-tag">06 — CÂU HỎI THƯỜNG GẶP</div>
+      <h2 id="faq-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(1.8rem,4vw,2.4rem);color:var(--navydark);">
+        Bạn đang thắc mắc?
+      </h2>
+    </div>
+
+    <div class="space-y-3">
+      <div class="faq-item fade-up" style="transition-delay:0ms">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Tôi không biết code có học được không?
+          <i data-lucide="plus" class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a" role="region">
+          <strong>Hoàn toàn học được.</strong> AI VIBE 2026 được thiết kế đặc biệt cho người không có nền tảng kỹ thuật. Bạn chỉ cần biết mô tả điều mình muốn bằng tiếng Việt — AI sẽ làm phần còn lại. Không có một dòng code nào bạn phải tự viết.
+        </div>
+      </div>
+
+      <div class="faq-item fade-up" style="transition-delay:60ms">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Cần chuẩn bị gì trước khi đến lớp?
+          <i data-lucide="plus" class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a" role="region">
+          Bạn cần: (1) Laptop kết nối internet tốt, (2) Tài khoản Gmail — để truy cập Claude, Gemini, và GitHub Pages bản miễn phí. Không cần tài khoản trả phí, không cần cài thêm phần mềm gì. Chúng tôi sẽ hướng dẫn setup ngay khi bắt đầu lớp.
+        </div>
+      </div>
+
+      <div class="faq-item fade-up" style="transition-delay:120ms">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Tài khoản AI có cần bản trả phí không?
+          <i data-lucide="plus" class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a" role="region">
+          Không cần. Toàn bộ bài tập trong khóa được thiết kế để chạy được trên bản miễn phí của Claude, Gemini, và GitHub. Nếu sau khóa học bạn muốn nâng cấp để dùng nhiều hơn, chúng tôi sẽ tư vấn — nhưng trong buổi học, bản free là đủ.
+        </div>
+      </div>
+
+      <div class="faq-item fade-up" style="transition-delay:180ms">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Làm sao để được cấp chứng nhận?
+          <i data-lucide="plus" class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a" role="region">
+          Bạn cần nộp đủ 2 sản phẩm cuối buổi (Slide + Bonus Landing Page) và đạt tổng điểm ≥ 7/10. Tiêu chí chấm điểm rõ ràng sẽ được thông báo ngay từ đầu buổi học. Chứng nhận được cấp kỹ thuật số, ghi nhận trong hệ thống KNL nội bộ VTNet.
+        </div>
+      </div>
+
+      <div class="faq-item fade-up" style="transition-delay:240ms">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Nếu không đạt 7/10 thì sao?
+          <i data-lucide="plus" class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a" role="region">
+          Không sao cả! Bạn vẫn nhận đầy đủ tài liệu, prompt mẫu, và bonus tài liệu mở rộng. Bạn có thể hoàn thiện sản phẩm sau buổi học và nộp lại trong vòng 3 ngày để được xét chứng nhận. Mục tiêu của chúng tôi là <em>mọi học viên đều thành công</em>.
+        </div>
+      </div>
+
+      <div class="faq-item fade-up" style="transition-delay:300ms">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Tôi học online có nhận được chứng nhận không?
+          <i data-lucide="plus" class="faq-icon w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a" role="region">
+          Có. Học viên online qua Zoom có điều kiện nhận chứng nhận hoàn toàn giống offline — miễn là tham gia đủ thời lượng và nộp đủ sản phẩm. Link Zoom sẽ được gửi qua email sau khi bạn đăng ký thành công.
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-12 fade-up">
+      <p style="color:var(--gray-text);font-size:0.95rem;margin-bottom:16px;">Còn thắc mắc khác? Liên hệ Đ/c Minh — <a href="tel:0989208017" style="color:var(--red);font-weight:700;">0989 208 017</a></p>
+      <div class="flex justify-center gap-4 flex-wrap">
+        <a href="https://zalo.me/REPLACE_ZALO" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm text-white"
+           style="background:#0068FF;" aria-label="Liên hệ qua Zalo">
+          <i data-lucide="message-circle" class="w-4 h-4" aria-hidden="true"></i> Nhắn Zalo
+        </a>
+        <a href="mailto:REPLACE_EMAIL"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm border"
+           style="border-color:var(--red);color:var(--red);" aria-label="Liên hệ qua email">
+          <i data-lucide="mail" class="w-4 h-4" aria-hidden="true"></i> Gửi Email
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [10] CTA CUỐI -->
+<!-- ================================================================ -->
+<section id="dang-ky" class="section-pad" style="background:var(--grad-cta);" aria-labelledby="cta-heading">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+    <div class="fade-up mb-10">
+      <h2 id="cta-heading" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;margin-bottom:16px;">
+        <span style="color:#fff;">🔥 AI không thay thế bạn.</span><br>
+        <span class="grad-white-cyan">Người biết dùng AI sẽ thay thế bạn.</span>
+      </h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:1rem;">Đăng ký ngay trước khi hết hạn</p>
+    </div>
+
+    <!-- Countdown -->
+    <div class="flex justify-center gap-4 mb-12 flex-wrap fade-up" aria-label="Đếm ngược đến hạn đăng ký 06/05/2026" role="timer">
+      <div class="cd-box">
+        <div class="cd-num" id="cd-days" aria-label="Số ngày còn lại">00</div>
+        <div class="cd-label">Ngày</div>
+      </div>
+      <div class="cd-box">
+        <div class="cd-num" id="cd-hours">00</div>
+        <div class="cd-label">Giờ</div>
+      </div>
+      <div class="cd-box">
+        <div class="cd-num" id="cd-mins">00</div>
+        <div class="cd-label">Phút</div>
+      </div>
+      <div class="cd-box">
+        <div class="cd-num" id="cd-secs">00</div>
+        <div class="cd-label">Giây</div>
+      </div>
+    </div>
+
+    <!-- CTA button -->
+    <div class="fade-up mb-8">
+      <a href="REPLACE_FORM_URL" target="_blank" rel="noopener"
+         class="pulse-cta inline-flex items-center gap-3 bg-viettel text-white font-black rounded-full px-10 py-5 text-lg"
+         style="font-family:'Be Vietnam Pro',sans-serif;"
+         aria-label="Đăng ký tham gia AI VIBE 2026 trước ngày 06/05/2026">
+        <i data-lucide="rocket" class="w-6 h-6" aria-hidden="true"></i>
+        ĐĂNG KÝ NGAY — GIỮ CHỖ TRƯỚC 06/05/2026
+      </a>
+    </div>
+
+    <!-- Micro copy -->
+    <div class="fade-up space-y-3">
+      <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;">
+        Chỉ cần 2 phút điền form &bull; Miễn phí 100% cho CBCNV VTNet &bull; Hẹn gặp bạn sáng Thứ Sáu
+      </p>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:9999px;padding:8px 20px;">
+        <i data-lucide="check-circle" class="w-4 h-4 text-green-400" aria-hidden="true"></i>
+        <span style="color:#86efac;font-size:0.85rem;font-weight:600;">Mỗi học viên ra khỏi lớp đều mang theo sản phẩm hoàn chỉnh có thể dùng tuần sau</span>
+      </div>
+      <div class="mt-6">
+        <a href="tel:0989208017" style="color:rgba(255,255,255,0.5);font-size:0.9rem;">
+          📞 Hoặc gọi trực tiếp: <strong style="color:#fff;">0989 208 017</strong> — Đ/c Mai Ngọc Minh
+        </a>
+      </div>
+      <p style="color:rgba(255,255,255,0.3);font-size:0.85rem;margin-top:16px;font-style:italic;">
+        — Hẹn gặp bạn tại AI VIBE, sáng Thứ Sáu 08/05/2026 —
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- [11] FOOTER -->
+<!-- ================================================================ -->
+<footer style="background:var(--navydark);padding:60px 0 30px;" aria-label="Chân trang">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="grid md:grid-cols-3 gap-10 mb-10">
+      <!-- Brand -->
+      <div>
+        <div class="flex items-center gap-3 mb-5">
+          <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-viettel" aria-hidden="true">
+            <span style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;color:#fff;font-size:1.1rem;">V</span>
+          </div>
+          <div>
+            <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:800;color:#fff;font-size:0.9rem;">VIETTEL NETWORKS</div>
+            <div style="font-family:'Be Vietnam Pro',sans-serif;font-weight:600;color:var(--cyan);font-size:0.75rem;">Tổng Công ty Mạng lưới — Viettel Group</div>
+          </div>
+        </div>
+        <div style="background:rgba(238,0,51,0.1);border:1px solid rgba(238,0,51,0.2);border-radius:9999px;padding:7px 16px;display:inline-flex;align-items:center;gap:8px;">
+          <i data-lucide="shield-check" class="w-4 h-4 text-cyan" aria-hidden="true"></i>
+          <span style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;">Đáp ứng KNL — VTNet 2026</span>
+        </div>
+      </div>
+
+      <!-- Nav links -->
+      <nav aria-label="Menu footer">
+        <p style="color:rgba(255,255,255,0.35);font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;">Điều hướng</p>
+        <div class="space-y-2">
+          <a href="#loi-ich" style="display:block;color:rgba(255,255,255,0.55);font-size:0.9rem;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">Mục tiêu chương trình</a>
+          <a href="#doi-tuong" style="display:block;color:rgba(255,255,255,0.55);font-size:0.9rem;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">Đối tượng</a>
+          <a href="#noi-dung" style="display:block;color:rgba(255,255,255,0.55);font-size:0.9rem;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">Nội dung</a>
+          <a href="#quyen-loi" style="display:block;color:rgba(255,255,255,0.55);font-size:0.9rem;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">Quyền lợi</a>
+          <a href="#dang-ky" style="display:block;color:rgba(255,255,255,0.55);font-size:0.9rem;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">Đăng ký ngay</a>
+        </div>
+      </nav>
+
+      <!-- Contact -->
+      <div>
+        <p style="color:rgba(255,255,255,0.35);font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;">Liên hệ</p>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <i data-lucide="user" class="w-4 h-4 text-cyan flex-shrink-0" aria-hidden="true"></i>
+            <span style="color:rgba(255,255,255,0.6);font-size:0.9rem;">Đ/c Mai Ngọc Minh</span>
+          </div>
+          <a href="tel:0989208017" class="flex items-center gap-3" aria-label="Gọi điện 0989 208 017">
+            <i data-lucide="phone" class="w-4 h-4 text-cyan flex-shrink-0" aria-hidden="true"></i>
+            <span style="color:rgba(255,255,255,0.6);font-size:0.9rem;">0989 208 017</span>
+          </a>
+          <div class="flex items-center gap-3">
+            <i data-lucide="building-2" class="w-4 h-4 text-cyan flex-shrink-0" aria-hidden="true"></i>
+            <span style="color:rgba(255,255,255,0.6);font-size:0.9rem;">Phòng Nhân sự, VTNet</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;text-align:center;">
+      <p style="color:rgba(255,255,255,0.25);font-size:0.82rem;">© 2026 Viettel Networks — Tất cả quyền được bảo lưu. Khóa học nội bộ, không phổ biến ra bên ngoài.</p>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ================================================================ -->
+<!-- STICKY CTA BAR -->
+<!-- ================================================================ -->
+<div id="sticky-bar" role="complementary" aria-label="Thanh đăng ký cố định">
+  <div class="flex items-center gap-3 text-white text-sm font-bold">
+    <i data-lucide="clock" class="w-4 h-4 flex-shrink-0" aria-hidden="true"></i>
+    <span id="sticky-bar-text">⏰ Hạn đăng ký 06/05/2026</span>
+  </div>
+  <a href="REPLACE_FORM_URL" target="_blank" rel="noopener"
+     class="bg-white text-viettel font-black rounded-full px-5 py-2 text-sm flex-shrink-0 hover:bg-gray-100 transition-colors"
+     aria-label="Đăng ký ngay">Đăng ký ngay →</a>
+</div>
+
+
+<!-- ================================================================ -->
+<!-- FOMO TOAST -->
+<!-- ================================================================ -->
+<div id="fomo-toast" role="status" aria-live="polite" aria-atomic="true">
+  <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--cyan));display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:900;font-size:0.9rem;" aria-hidden="true">V</div>
+  <div>
+    <div id="toast-name" style="font-weight:700;color:var(--navydark);font-size:0.83rem;"></div>
+    <div style="color:var(--gray-text);font-size:0.75rem;">vừa đăng ký tham gia</div>
+  </div>
+</div>
+
+
+<!-- ================================================================ -->
+<!-- EXIT POPUP -->
+<!-- ================================================================ -->
+<div id="exit-popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+  <div class="popup-box">
+    <button onclick="closePopup()" style="position:absolute;top:16px;right:16px;background:none;border:none;cursor:pointer;color:#94a3b8;" aria-label="Đóng popup">
+      <i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i>
+    </button>
+    <div style="font-size:3rem;margin-bottom:12px;" aria-hidden="true">🎓</div>
+    <h3 id="popup-title" style="font-family:'Be Vietnam Pro',sans-serif;font-weight:900;font-size:1.4rem;color:var(--navydark);margin-bottom:10px;">Đừng để lỡ chứng nhận KNL!</h3>
+    <p style="color:var(--gray-text);font-size:0.9rem;line-height:1.7;margin-bottom:24px;">
+      Đăng ký AI VIBE 2026 chỉ mất <strong>2 phút</strong> — hoàn toàn miễn phí cho CBCNV VTNet.<br>Hạn cuối: <strong style="color:var(--red);">06/05/2026</strong>.
+    </p>
+    <div class="flex gap-3 justify-center flex-wrap">
+      <a href="REPLACE_FORM_URL" target="_blank" rel="noopener"
+         class="glow-btn bg-viettel text-white font-bold rounded-full px-6 py-3 text-sm"
+         onclick="closePopup()" aria-label="Đăng ký ngay khóa AI VIBE 2026">
+        Đăng ký ngay
+      </a>
+      <button onclick="closePopup()" style="background:none;border:1.5px solid #e2e8f0;border-radius:9999px;padding:10px 20px;font-size:0.9rem;color:var(--gray-text);cursor:pointer;" aria-label="Để sau">
+        Để sau
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================ -->
+<!-- FLOATING ZALO -->
+<!-- ================================================================ -->
+<a id="zalo-btn" href="https://zalo.me/REPLACE_ZALO" target="_blank" rel="noopener"
+   aria-label="Chat Zalo với ban tổ chức">
+  <svg width="26" height="26" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="200" height="200" rx="40" fill="white"/>
+    <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="120" font-weight="900" fill="#0068FF" font-family="Arial">Z</text>
+  </svg>
+</a>
+
+
+<!-- ================================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ================================================================ -->
+<script>
+  // Init Lucide icons
+  lucide.createIcons();
+
+  // ===== NAV SCROLL =====
+  const nav = document.getElementById('main-nav');
+  const stickyBar = document.getElementById('sticky-bar');
+  const heroSection = document.getElementById('hero');
+  let heroHeight = heroSection ? heroSection.offsetHeight : 600;
+
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > 80) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+    // Sticky bar
+    if (y > heroHeight * 0.6) {
+      stickyBar.classList.add('visible');
+    } else {
+      stickyBar.classList.remove('visible');
+    }
+  }, { passive: true });
+
+  // ===== HAMBURGER =====
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', isOpen);
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+    });
+  });
+
+  // ===== PARTICLE CANVAS =====
+  (function() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+
+    function resize() {
+      w = canvas.width = canvas.offsetWidth;
+      h = canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    const colors = ['rgba(0,212,255,', 'rgba(238,0,51,', 'rgba(124,58,237,'];
+
+    function createParticle() {
+      return {
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.5 + 0.5,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        alpha: Math.random() * 0.5 + 0.1,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      };
+    }
+
+    for (let i = 0; i < 90; i++) particles.push(createParticle());
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + p.alpha + ')';
+        ctx.fill();
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = w;
+        if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h;
+        if (p.y > h) p.y = 0;
+      });
+      // Draw connecting lines
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = 'rgba(0,212,255,' + (0.05 * (1 - dist/100)) + ')';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  // ===== COUNTING ANIMATION =====
+  function animateCount(el, target, suffix, decimal) {
+    const duration = 1800;
+    const start = performance.now();
+    const isDecimal = decimal === '1';
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const val = ease * target;
+      el.textContent = (isDecimal ? val.toFixed(1) : Math.round(val)) + (suffix || '');
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const countersObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.querySelectorAll('.trust-num[data-target]').forEach(el => {
+          const target = parseFloat(el.dataset.target);
+          const suffix = el.dataset.suffix || '';
+          const decimal = el.dataset.decimal;
+          animateCount(el, target, suffix, decimal);
+          el.removeAttribute('data-target');
+        });
+        countersObs.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  const trustBar = document.getElementById('trust-bar');
+  if (trustBar) countersObs.observe(trustBar);
+
+  // ===== SCROLL FADE-UP =====
+  const fadeEls = document.querySelectorAll('.fade-up');
+  const fadeObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        fadeObs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  fadeEls.forEach(el => fadeObs.observe(el));
+
+  // ===== FAQ ACCORDION =====
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    document.querySelectorAll('.faq-q').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    // Open clicked
+    if (!isOpen) {
+      item.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  // ===== TAB SWITCH =====
+  function switchTab(tab) {
+    document.getElementById('tab-content-1').style.display = tab === 1 ? '' : 'none';
+    document.getElementById('tab-content-2').style.display = tab === 2 ? '' : 'none';
+    document.getElementById('tab1').classList.toggle('active', tab === 1);
+    document.getElementById('tab2').classList.toggle('active', tab === 2);
+    document.getElementById('tab1').setAttribute('aria-selected', tab === 1);
+    document.getElementById('tab2').setAttribute('aria-selected', tab === 2);
+    // Re-trigger fade-up for new content
+    document.querySelectorAll('#tab-content-' + tab + ' .fade-up').forEach(el => {
+      el.classList.remove('visible');
+      setTimeout(() => el.classList.add('visible'), 60);
+    });
+  }
+
+  // ===== COUNTDOWN TIMER =====
+  const deadline = new Date('2026-05-06T23:59:59');
+  function updateCountdown() {
+    const now = new Date();
+    const diff = deadline - now;
+    if (diff <= 0) {
+      document.getElementById('cd-days').textContent = '00';
+      document.getElementById('cd-hours').textContent = '00';
+      document.getElementById('cd-mins').textContent = '00';
+      document.getElementById('cd-secs').textContent = '00';
+      return;
+    }
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-days').textContent = String(days).padStart(2, '0');
+    document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('cd-mins').textContent = String(mins).padStart(2, '0');
+    document.getElementById('cd-secs').textContent = String(secs).padStart(2, '0');
+    // Sticky bar text
+    document.getElementById('sticky-bar-text').textContent = `⏰ Còn ${days} ngày — Đăng ký trước 06/05`;
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // ===== FOMO TOAST =====
+  const fomoNames = [
+    'Đ/c Nguyễn Văn Hùng', 'Đ/c Trần Thị Mai', 'Đ/c Lê Quang Khải',
+    'Đ/c Phạm Thị Lan', 'Đ/c Vũ Minh Tuấn', 'Đ/c Hoàng Thu Hà',
+    'Đ/c Đỗ Văn Dũng'
+  ];
+  const toast = document.getElementById('fomo-toast');
+  const toastName = document.getElementById('toast-name');
+  let toastIdx = 0;
+  let fomoShownCount = 0;
+
+  function showFomoToast() {
+    if (fomoShownCount >= 5) return; // Show max 5 times
+    const name = fomoNames[toastIdx % fomoNames.length];
+    const mins = Math.floor(Math.random() * 5) + 1;
+    toastName.textContent = name;
+    toast.querySelector('div:last-child div:last-child').textContent = `vừa đăng ký ${mins} phút trước`;
+    toast.classList.add('show');
+    toastIdx++;
+    fomoShownCount++;
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+  setTimeout(showFomoToast, 5000);
+  setInterval(() => {
+    if (Math.random() > 0.3) showFomoToast();
+  }, 17000);
+
+  // ===== EXIT INTENT POPUP =====
+  let exitShown = false;
+  document.addEventListener('mouseleave', (e) => {
+    if (e.clientY < 10 && !exitShown) {
+      exitShown = true;
+      document.getElementById('exit-popup').classList.add('show');
+    }
+  });
+  function closePopup() {
+    document.getElementById('exit-popup').classList.remove('show');
+  }
+  document.getElementById('exit-popup').addEventListener('click', function(e) {
+    if (e.target === this) closePopup();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePopup();
+  });
+
+  // ===== SMOOTH SCROLL =====
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        const navH = nav.offsetHeight;
+        const top = target.getBoundingClientRect().top + window.scrollY - navH - 10;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+<!--
+================================================================================
+  HƯỚNG DẪN CHỈNH SỬA:
+
+  1. LINK FORM ĐĂNG KÝ:
+     Tìm tất cả "REPLACE_FORM_URL" trong file → thay bằng link Google Form thật
+     Ví dụ: https://forms.gle/xxxxxxxxxxxxxxxx
+
+  2. ZALO:
+     Tìm "REPLACE_ZALO" → thay bằng số điện thoại Zalo của ban tổ chức
+     Ví dụ: https://zalo.me/0989208017
+
+  3. EMAIL:
+     Tìm "REPLACE_EMAIL" → thay bằng địa chỉ email ban tổ chức
+     Ví dụ: aivibe2026@viettelnetworks.vn
+
+  4. LOGO VIETTEL:
+     Hiện tại dùng chữ "V" trong ô đỏ. Để dùng logo thật:
+     Thay đoạn <div class="... bg-viettel ..."> bằng:
+     <img src="URL_LOGO" alt="Logo Viettel" width="36" height="36">
+
+  5. NGÀY/GIỜ COUNTDOWN:
+     Tìm: const deadline = new Date('2026-05-06T23:59:59');
+     Thay ngày nếu deadline thay đổi.
+================================================================================
+-->
+
+</body>
+</html>
